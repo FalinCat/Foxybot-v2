@@ -49,7 +49,7 @@ namespace Foxybot.Modules
                 await _lavaNode.LeaveAsync(player.VoiceChannel);
             }
 
-            if (nowPlayLastMessage.ContainsKey(arg.Player.TextChannel.Id))
+            if (nowPlayLastMessage.ContainsKey(arg.Player.TextChannel.Id) && nowPlayLastMessage[arg.Player.TextChannel.Id] != null)
             {
                 var msg = nowPlayLastMessage[arg.Player.TextChannel.Id];
                 await msg.DeleteAsync();
