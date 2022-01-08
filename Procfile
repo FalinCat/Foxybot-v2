@@ -1,1 +1,1 @@
-worker: cd $HOME/heroku_output && ./FoxyBot-v2
+worker: cd $HOME/heroku_output && ./FoxyBot
