@@ -655,8 +655,8 @@ namespace Foxybot.Modules
         }
 
 
-        [Command("Jam", RunMode = RunMode.Async)]
-        public async Task YoutubeJamAsync([Remainder] string query)
+        [Command("mix", RunMode = RunMode.Async)]
+        public async Task YoutubeMixAsync([Remainder] string query)
         {
             if (!await CheckUserInChannel()) return;
             if (!await CheckBotInAnotherChannel()) return;
