@@ -449,7 +449,6 @@ namespace Foxybot.Modules
             if (!_lavaNode.TryGetPlayer(Context.Guild, out var player))
                 return;
 
-            await SimpleAnswer("Поставил на паузу", Color.LightOrange);
             await player.StopAsync();
         }
 
@@ -752,8 +751,15 @@ namespace Foxybot.Modules
                 EmbedBuilder embed = new EmbedBuilder()
                 {
                     Color = color,
-                    Title = "Трек добавлен в очередь",
+                    ImageUrl = $"https://img.youtube.com/vi/{track.Id}/0.jpg"
+                //Title = "Трек добавлен в очередь",
+            };
+                var author = new EmbedAuthorBuilder()
+                {
+                    IconUrl = "https://gif-avatars.com/img/90x90/fox.gif",
+                    Name = "Трек добавлен в очередь"
                 };
+                embed.Author = author;
 
                 embed.AddField($"{track.Author}", $"[{track.Title}]({track.Url})");
                 embed.AddField("Длительность", $"{new DateTime(track.Duration.Ticks).ToString(format)}", true);
