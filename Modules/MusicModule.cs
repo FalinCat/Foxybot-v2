@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Addons.Hosting;
 using Discord.Commands;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 using System.Text;
@@ -28,7 +29,47 @@ namespace Foxybot.Modules
         [Command("help", RunMode = RunMode.Async)]
         public async Task HelpAsync()
         {
-            await SimpleAnswer("Я в будущем обязательно напишу справку", null);
+            var color = new Color(64, 224, 208);
+            EmbedBuilder embed = new EmbedBuilder()
+            {
+                Color = color,
+            };
+            var author = new EmbedAuthorBuilder()
+            {
+                IconUrl = "https://gif-avatars.com/img/90x90/fox.gif",
+                Name = "Справка "
+            };
+            embed.Author = author;
+
+            var configuration = new ConfigurationBuilder()
+                    .SetBasePath(Directory.GetCurrentDirectory())
+                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                    .AddEnvironmentVariables()
+                    .Build();
+            embed.AddField("Префикс", $"Все команды необходимо начинать со знака \"{configuration["Prefix"]}\"");
+
+
+
+
+
+            embed.AddField("play", "Поиск видео на Youtube");
+            embed.AddField("pl", "Добавить плейлист к воспроизведению");
+            embed.AddField("stop", "Остановить воспроизведение");
+            embed.AddField("pause", "Поставить паузу");
+            embed.AddField("resume", "Продолжить воспроизведение");
+            embed.AddField("search", "Поиск на Youtube по названию");
+            embed.AddField("seek", "Перемотать на позицию. Задается через :. Например 1:27 ");
+            embed.AddField("shuffle", "Перемешать очередь");
+            embed.AddField("volume", "Узнать или поставить громкость");
+            embed.AddField("stop", "Остановить воспроизведение");
+            embed.AddField("next", "Добавить трек в начало очереди");
+            embed.AddField("clear", "Очистить очередь");
+            embed.AddField("save", "Сохранить себе песню");
+            embed.AddField("mix", "Добавить ютубовский микс по треку");
+
+
+
+            await ReplyAsync(embed: embed.Build());
         }
 
 
