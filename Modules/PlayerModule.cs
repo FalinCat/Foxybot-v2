@@ -44,13 +44,17 @@ namespace Foxybot.Modules
                     .WithTitle("Конец очереди :confused: ")
                     .WithDescription("Пойду я...")
                     .WithColor(color);
-                if (nowPlayLastMessage.ContainsKey(arg.Player.TextChannel.Id))
-                {
-                    var msg = nowPlayLastMessage[arg.Player.TextChannel.Id];
-                    await msg.DeleteAsync();
-                }
+
                 await arg.Player.TextChannel.SendMessageAsync("", false, builder.Build());
                 await _lavaNode.LeaveAsync(player.VoiceChannel);
+            }
+
+            if (nowPlayLastMessage.ContainsKey(arg.Player.TextChannel.Id))
+            {
+                var msg = nowPlayLastMessage[arg.Player.TextChannel.Id];
+                await msg.DeleteAsync();
+
+                nowPlayLastMessage[arg.Player.TextChannel.Id] = null;
             }
 
         }
@@ -80,6 +84,12 @@ namespace Foxybot.Modules
             };
             embed.Author = author;
 
+
+            if (nowPlayLastMessage.ContainsKey(arg.Player.TextChannel.Id) && nowPlayLastMessage[arg.Player.TextChannel.Id] != null)
+            {
+                var msg = nowPlayLastMessage[arg.Player.TextChannel.Id];
+                await msg.DeleteAsync();
+            }
             nowPlayLastMessage[arg.Player.TextChannel.Id] = await arg.Player.TextChannel.SendMessageAsync("", false, embed.Build());
         }
 
