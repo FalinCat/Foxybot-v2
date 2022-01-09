@@ -457,7 +457,7 @@ namespace Foxybot.Modules
 
             await player.PauseAsync();
 
-            await SimpleAnswer("Ставим паузу...", Color.LightOrange);
+            await SimpleAnswer("Ставим паузу...", Color.LightOrange, thumbnailUrl: "https://i.pinimg.com/originals/1f/fa/c1/1ffac19e3ec5169041898d38e35cb9d5.gif");
         }
 
 
@@ -470,7 +470,8 @@ namespace Foxybot.Modules
             if (!_lavaNode.TryGetPlayer(Context.Guild, out var player))
                 return;
 
-            await SimpleAnswer($"Продолжаем играть! Сейчас играет {player.Track.Title}", Color.Green);
+            await SimpleAnswer($"Продолжаем играть! Сейчас играет {player.Track.Title}", Color.Green, 
+                thumbnailUrl: "https://c.tenor.com/gnQH0xZxt4YAAAAC/jumping-fox.gif");
             await player.ResumeAsync();
         }
 
@@ -872,7 +873,7 @@ namespace Foxybot.Modules
             return true;
         }
 
-        public async Task SimpleAnswer(string from = "", Color? color = null, string text = "")
+        public async Task SimpleAnswer(string from = "", Color? color = null, string text = "", string? thumbnailUrl = null)
         {
             if (color == null)
                 color = new Color(64, 224, 208);
@@ -881,6 +882,12 @@ namespace Foxybot.Modules
                 Color = color,
                 Title = text,
             };
+
+            if (thumbnailUrl != null)
+            {
+                embed.ThumbnailUrl = thumbnailUrl;
+            }
+
             var author = new EmbedAuthorBuilder()
             {
                 IconUrl = "https://gif-avatars.com/img/90x90/fox.gif",
