@@ -470,7 +470,7 @@ namespace Foxybot.Modules
             if (!_lavaNode.TryGetPlayer(Context.Guild, out var player))
                 return;
 
-            await SimpleAnswer($"Продолжаем играть! Сейчас играет {player.Track.Title}", Color.Green, 
+            await SimpleAnswer($"Продолжаем играть!{Environment.NewLine}Сейчас играет {player.Track.Title}", Color.Green, 
                 thumbnailUrl: "https://c.tenor.com/gnQH0xZxt4YAAAAC/jumping-fox.gif");
             await player.ResumeAsync();
         }
