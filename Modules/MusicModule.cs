@@ -790,7 +790,7 @@ namespace Foxybot.Modules
                 EmbedBuilder embed = new EmbedBuilder()
                 {
                     Color = color,
-                    ImageUrl = $"https://img.youtube.com/vi/{track.Id}/0.jpg"
+                    //ImageUrl = $"https://img.youtube.com/vi/{track.Id}/0.jpg"
                 };
                 var author = new EmbedAuthorBuilder()
                 {
