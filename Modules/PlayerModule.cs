@@ -41,7 +41,7 @@ namespace Foxybot.Modules
                 EmbedBuilder builder = new EmbedBuilder();
                 var color = new Color(64, 224, 208);
                 builder
-                    .WithTitle("Конец очереди :confused: ")
+                    .WithTitle("Больше нечего играть :confused: ")
                     .WithDescription("Пойду я...")
                     .WithColor(color);
 
