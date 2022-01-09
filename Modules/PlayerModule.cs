@@ -38,14 +38,16 @@ namespace Foxybot.Modules
 
             if (player.Queue.Count == 0 && player.PlayerState != PlayerState.Playing)
             {
-                EmbedBuilder builder = new EmbedBuilder();
-                var color = new Color(64, 224, 208);
-                builder
-                    .WithTitle("Больше нечего играть :confused: ")
-                    .WithDescription("Пойду я...")
-                    .WithColor(color);
+                EmbedBuilder embed = new EmbedBuilder()
+                {
+                    Title = "Больше нечего играть :confused: ",
+                    Description = "Пойду я...",
+                    ThumbnailUrl = "https://c.tenor.com/JIcfzm_jmUQAAAAC/cute-jump.gif",
+                    Color = new Color(64, 224, 208)
 
-                await arg.Player.TextChannel.SendMessageAsync("", false, builder.Build());
+                };
+
+                await arg.Player.TextChannel.SendMessageAsync("", false, embed.Build());
                 await _lavaNode.LeaveAsync(player.VoiceChannel);
             }
 
