@@ -47,11 +47,6 @@ namespace Foxybot.Modules
                     .AddEnvironmentVariables()
                     .Build();
             embed.AddField("Префикс", $"Все команды необходимо начинать со знака \"{configuration["Prefix"]}\"");
-
-
-
-
-
             embed.AddField("play", "Поиск видео на Youtube");
             embed.AddField("pl", "Добавить плейлист к воспроизведению");
             embed.AddField("stop", "Остановить воспроизведение");
@@ -66,8 +61,6 @@ namespace Foxybot.Modules
             embed.AddField("clear", "Очистить очередь");
             embed.AddField("save", "Сохранить себе песню");
             embed.AddField("mix", "Добавить ютубовский микс по треку");
-
-
 
             await ReplyAsync(embed: embed.Build());
         }
@@ -422,7 +415,8 @@ namespace Foxybot.Modules
 
                 var result = await _lavaNode.SearchAsync(SearchType.Direct, trackParameters["id"]);
                 var track = result.Tracks.Where(track => track.Id == trackParameters["id"]).FirstOrDefault();
-                if (track == null) {
+                if (track == null)
+                {
                     await SimpleAnswer("Не получилось скачать инфо о треке для его воспроизведения", Color.Red);
                     return;
                 }
@@ -443,7 +437,7 @@ namespace Foxybot.Modules
             if (player.Queue.Count >= 1)
             {
                 await player.SkipAsync();
-                await SimpleAnswer("Пропускаем...", Color.LightOrange);
+                await SimpleAnswer($"Пропускаем {player.Track.Title}...", Color.LightOrange);
             }
             else
             {
@@ -476,7 +470,7 @@ namespace Foxybot.Modules
             if (!_lavaNode.TryGetPlayer(Context.Guild, out var player))
                 return;
 
-            await SimpleAnswer("Продолжаем играть!", Color.Green);
+            await SimpleAnswer($"Продолжаем играть! Сейчас играет {player.Track.Title}", Color.Green);
             await player.ResumeAsync();
         }
 
@@ -563,7 +557,8 @@ namespace Foxybot.Modules
                 return;
 
             var track = player.Track;
-            if (track == null) {
+            if (track == null)
+            {
                 await SimpleAnswer("Трека нет", Color.Red);
             }
             var color = new Color(64, 224, 208);
@@ -611,7 +606,8 @@ namespace Foxybot.Modules
                 await SimpleAnswer("Бот находится в не подключенном состоянии", Color.Red);
                 return;
             }
-            if (ushort.TryParse(query, out ushort value)) {
+            if (ushort.TryParse(query, out ushort value))
+            {
                 if (value > 100 || value < 2)
                 {
                     await SimpleAnswer("Громкость надо ставить в пределах от 2 до 100");
@@ -680,7 +676,7 @@ namespace Foxybot.Modules
                 var format = "mm:ss";
                 if (ts >= player.Track.Duration)
                 {
-                    
+
                     if (player.Track.Duration > TimeSpan.FromHours(1))
                     {
                         format = "HH:mm:ss";
@@ -711,7 +707,8 @@ namespace Foxybot.Modules
             var searchQuery = $"https://youtu.be/{track["id"]}?list=RDMM";
             var result = await _lavaNode.SearchAsync(SearchType.Direct, searchQuery);
 
-            if (result.Status != SearchStatus.PlaylistLoaded) {
+            if (result.Status != SearchStatus.PlaylistLoaded)
+            {
                 await SimpleAnswer("Не получилось сгенерировать плейлист");
                 return;
             }
@@ -769,7 +766,8 @@ namespace Foxybot.Modules
                 await SendToQueue(trackList.First());
                 trackList.RemoveAt(0);
                 player.Queue.Enqueue(trackList);
-                await SimpleAnswer($"В очередь добавлено {trackList.Count} треков", Color.Green);
+                var totalTime = new DateTime(trackList.Sum(track => track.Duration.Ticks)).ToString("HH:mm:ss");
+                await SimpleAnswer($"В очередь добавлено {trackList.Count} треков общей длительностью -> {totalTime}", Color.Green);
             }
         }
 
@@ -793,8 +791,7 @@ namespace Foxybot.Modules
                 {
                     Color = color,
                     ImageUrl = $"https://img.youtube.com/vi/{track.Id}/0.jpg"
-                //Title = "Трек добавлен в очередь",
-            };
+                };
                 var author = new EmbedAuthorBuilder()
                 {
                     IconUrl = "https://gif-avatars.com/img/90x90/fox.gif",
@@ -804,6 +801,8 @@ namespace Foxybot.Modules
 
                 embed.AddField($"{track.Author}", $"[{track.Title}]({track.Url})");
                 embed.AddField("Длительность", $"{new DateTime(track.Duration.Ticks).ToString(format)}", true);
+                embed.AddField("Позиция в очереди", $"{player.Queue.Count}", true);
+                embed.ThumbnailUrl = $"https://img.youtube.com/vi/{track.Id}/0.jpg";
 
 
                 await ReplyAsync(null, false, embed.Build());
