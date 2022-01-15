@@ -485,6 +485,7 @@ namespace Foxybot.Modules
             if (!_lavaNode.TryGetPlayer(Context.Guild, out var player))
                 return;
 
+            player.Queue.Clear();
             await player.StopAsync();
         }
 
@@ -517,7 +518,7 @@ namespace Foxybot.Modules
 
 
         [Command("shuffle", RunMode = RunMode.Async)]
-        public async Task ShuffleAsync([Remainder] string query)
+        public async Task ShuffleAsync()
         {
             if (!await CheckUserInChannel()) return;
             if (!await CheckBotInAnotherChannel()) return;
