@@ -437,7 +437,7 @@ namespace Foxybot.Modules
             if (player.Queue.Count >= 1)
             {
                 await player.SkipAsync();
-                await SimpleAnswer($"Пропускаем {player.Track.Title}...", Color.LightOrange);
+                await SimpleAnswer("Пропускаем...", Color.LightOrange);
             }
             else
             {
@@ -508,7 +508,7 @@ namespace Foxybot.Modules
                     return;
                 }
                 var track = player.Queue.RemoveAt(n - 1);
-                await SimpleAnswer($"Трек **{track.Title}** удален из очереди", Color.Green);
+                await SimpleAnswer($"Трек {track.Title} удален из очереди", Color.Green);
             }
             else
             {
