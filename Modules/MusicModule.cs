@@ -1,8 +1,13 @@
 ﻿using Discord;
 using Discord.Addons.Hosting;
 using Discord.Commands;
+using Foxybot.Spotify;
+using Foxybot.Spotify.Recomendations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using RestSharp;
+using RestSharp.Authenticators;
 using System.Collections.Concurrent;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -18,6 +23,7 @@ namespace Foxybot.Modules
         private readonly LavaNode _lavaNode;
         ILogger<DiscordClientService> _logger;
         private static readonly ConcurrentDictionary<ulong, IUserMessage> lastSearchResultMessage = new ConcurrentDictionary<ulong, IUserMessage>();  // textChannel - message
+        private static readonly ConcurrentDictionary<ulong, SpotifySearchResponce> spotifyResult = new ConcurrentDictionary<ulong, SpotifySearchResponce>();
 
         public MusicModule(LavaNode lavaNode, ILogger<DiscordClientService> logger)
         {
@@ -206,7 +212,6 @@ namespace Foxybot.Modules
                 Name = "Очередь воспроизведения"
             };
 
-            embed.Author = author;
             var url = $"https://img.youtube.com/vi/{player.Track.Id}/0.jpg";
             embed.WithThumbnailUrl(url);
             embed.Author = author;
@@ -898,6 +903,148 @@ namespace Foxybot.Modules
             embed.Author = author;
 
             await ReplyAsync(null, false, embed.Build());
+        }
+
+
+        //////////////////// SPOTIFY
+
+        [Command("spot", RunMode = RunMode.Async)]
+        public async Task SearchSpotifyAsync([Remainder] string query)
+        {
+
+            if (int.TryParse(query, out int number))
+            {
+                if (spotifyResult.TryGetValue(Context.Channel.Id, out var spotifySavedResult))
+                {
+                    var pickedTrack = spotifySavedResult.tracks.items[number];
+
+                    var recomendations = await SpotifySearchRecommendations(pickedTrack.id);
+                    if (recomendations.Count > 0)
+                    {
+                        if (!await CheckUserInChannel()) return;
+                        if (!await CheckBotInAnotherChannel()) return;
+
+                        await TryConnectToVoiceAsync();
+                        if (!_lavaNode.TryGetPlayer(Context.Guild, out var player))
+                            return;
+
+                        foreach (var rec in recomendations)
+                        {
+                            var track = _lavaNode.SearchAsync(SearchType.YouTube, rec).Result.Tracks.FirstOrDefault();
+
+                            if (player.PlayerState == PlayerState.Playing || player.PlayerState == PlayerState.Paused)
+                            {
+                                player.Queue.Enqueue(track);
+                            }
+                            else
+                            {
+                                await player.PlayAsync(track);
+                            }
+                        }
+                        await Task.Delay(2000);
+                        await SimpleAnswer($"В очередь добавлено {recomendations.Count} треков");
+                    }
+                    return;
+                }
+                else
+                {
+                    return;
+                }
+            }
+
+            var token = await GetToken();
+            RestClient client = new RestClient("https://api.spotify.com/");
+            client.Authenticator = new JwtAuthenticator(token);
+
+            var request = new RestRequest("v1/search/", Method.Get);
+            request.AddParameter("q", query);
+            request.AddParameter("type", "track");
+
+            var result = await client.ExecuteAsync(request);
+            SpotifySearchResponce json = JsonConvert.DeserializeObject<SpotifySearchResponce>(result.Content ?? "") ?? new SpotifySearchResponce();
+            spotifyResult[Context.Channel.Id] = json;
+
+            EmbedBuilder embed = new EmbedBuilder()
+            {
+                Color = Color.Green,
+            };
+            var author = new EmbedAuthorBuilder()
+            {
+                IconUrl = "https://gif-avatars.com/img/90x90/fox.gif",
+                Name = "Результат поиска:"
+            };
+            embed.Author = author;
+
+
+            for (int i = 0; i < json.tracks.items.Count; i++)
+            {
+                if (json.tracks.items[i].artists.Count == 0) continue;
+                TimeSpan t = TimeSpan.FromMilliseconds(json.tracks.items[i].duration_ms);
+                string duration = string.Format("{0:D2}:{1:D2}:{2:D2}",
+                                        t.Hours,
+                                        t.Minutes,
+                                        t.Seconds);
+                embed.AddField($"{i} - {json.tracks.items[i].artists.First().name} - {json.tracks.items[i].name}", duration);
+
+            }
+
+            await ReplyAsync(null, false, embed.Build());
+
+        }
+
+
+
+
+        public static async Task<List<string>> SpotifySearchRecommendations(string track_id)
+        {
+            var token = await GetToken();
+            RestClient client = new RestClient("https://api.spotify.com/");
+            client.Authenticator = new JwtAuthenticator(token);
+
+            var request = new RestRequest("v1/recommendations/", Method.Get);
+            request.AddParameter("seed_tracks", track_id);
+
+            var result = await client.ExecuteAsync(request);
+            var recommendations = JsonConvert.DeserializeObject<SpotifyRecommendation>(result.Content);
+
+            var list = new List<string>();
+
+            foreach (var item in recommendations.tracks)
+            {
+                list.Add(item.artists.First().name + " - " + item.name);
+            }
+
+
+            return list;
+        }
+
+
+        public static async Task<string> GetToken()
+        {
+            var configuration = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                .AddEnvironmentVariables()
+                .Build();
+
+            RestClient client = new RestClient("https://accounts.spotify.com/");
+            var client_id = configuration.GetValue<string>("client_id");
+            var client_secret = configuration.GetValue<string>("client_secret");
+
+            var request = new RestRequest("api/token", Method.Post);
+            request.AddHeader("Content-Type", "application/x-www-form-urlencoded");
+            request.AddHeader("Authorization", "Basic " + Base64Encode($"{client_id}:{client_secret}"));
+            request.AddParameter("grant_type", "client_credentials");
+
+            var result = await client.ExecutePostAsync(request);
+
+            return JsonConvert.DeserializeObject<Login>(result.Content).access_token;
+        }
+
+        public static string Base64Encode(string plainText)
+        {
+            var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(plainText);
+            return System.Convert.ToBase64String(plainTextBytes);
         }
     }
 }
